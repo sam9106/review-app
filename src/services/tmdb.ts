@@ -21,7 +21,7 @@ export const searchTMDBMovies = async (query: string): Promise<TMDBMovie[]> => {
   if (!query.trim()) return [];
   try {
     const res = await fetch(
-      `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}&page=1`
+      `${BASE_URL}/search/movie?api_key=${API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}&page=1`
     );
     const data = await res.json();
     return data.results || [];
@@ -36,30 +36,25 @@ export const searchMovies = searchTMDBMovies;
 
 export const getTMDBMovieDetails = async (movieId: string | number) => {
   try {
-    // On récupère en parallèle les détails principaux, les crédits (casting/réa), les vidéos et les dates/certifications de sortie
     const [detailsRes, creditsRes, releaseDatesRes] = await Promise.all([
-      fetch(`${BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=fr-FR&append_to_response=videos`),
-      fetch(`${BASE_URL}/movie/${movieId}/credits?api_key=${TMDB_API_KEY}&language=fr-FR`),
-      fetch(`${BASE_URL}/movie/${movieId}/release_dates?api_key=${TMDB_API_KEY}`)
+      fetch(`${BASE_URL}/movie/${movieId}?api_key=${API_KEY}&language=fr-FR&append_to_response=videos`),
+      fetch(`${BASE_URL}/movie/${movieId}/credits?api_key=${API_KEY}&language=fr-FR`),
+      fetch(`${BASE_URL}/movie/${movieId}/release_dates?api_key=${API_KEY}`)
     ]);
 
     const data = await detailsRes.json();
     const credits = await creditsRes.json();
     const releaseDatesData = await releaseDatesRes.json();
     
-    // Recherche de la bande-annonce YouTube
     const trailer = data.videos?.results?.find(
       (v: any) => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')
     );
 
-    // Recherche de la certification française (FR)
     let certification = 'Tous publics';
     const frRelease = releaseDatesData.results?.find((r: any) => r.iso_3166_1 === 'FR');
     if (frRelease && frRelease.release_dates) {
-      // On cherche une certification non vide
       const certItem = frRelease.release_dates.find((d: any) => d.certification && d.certification !== '');
       if (certItem) {
-        // Formate proprement la certification (ex: "-16", "-12", "12", etc.)
         certification = certItem.certification.startsWith('-') ? certItem.certification : `-${certItem.certification}`;
       }
     }
@@ -91,7 +86,7 @@ export const getTMDBMovieDetails = async (movieId: string | number) => {
 export const getNowPlayingMovies = async (): Promise<TMDBMovie[]> => {
   try {
     const res = await fetch(
-      `${BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}&language=fr-FR&page=1`
+      `${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=fr-FR&page=1`
     );
     const data = await res.json();
     return data.results || [];
@@ -104,7 +99,7 @@ export const getNowPlayingMovies = async (): Promise<TMDBMovie[]> => {
 export const getUpcomingMovies = async (): Promise<TMDBMovie[]> => {
   try {
     const res = await fetch(
-      `${BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}&language=fr-FR&page=1`
+      `${BASE_URL}/movie/upcoming?api_key=${API_KEY}&language=fr-FR&page=1`
     );
     const data = await res.json();
     return data.results || [];
